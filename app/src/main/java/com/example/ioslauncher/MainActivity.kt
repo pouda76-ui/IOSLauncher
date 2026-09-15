@@ -9,14 +9,13 @@ import android.widget.TextView
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val title = TextView(this)
-        title.text = "IOSLauncher\n\nMűködik!"
-        title.textSize = 28f
-        title.setTextColor(Color.WHITE)
-        title.gravity = Gravity.CENTER
-        title.setBackgroundColor(Color.rgb(70, 150, 245))
-
-        setContentView(title)
+        val view = TextView(this).apply {
+            text = "IOSLauncher\n\nTESZT – ha ezt látod, az app elindult."
+            textSize = 22f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setBackgroundColor(Color.rgb(70, 150, 245))
+        }
+        setContentView(view)
     }
 }
