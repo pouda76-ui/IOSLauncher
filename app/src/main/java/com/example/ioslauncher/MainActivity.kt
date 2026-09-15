@@ -2,146 +2,131 @@ package com.example.ioslauncher
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
+import android.graphics.LinearGradient
+import android.graphics.Paint
+import android.graphics.Shader
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
-import android.view.Window
-import android.widget.LinearLayout
-import android.widget.TextView
 
 class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        window.decorView.systemUiVisibility = (
-            View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        )
         window.statusBarColor = Color.TRANSPARENT
         window.navigationBarColor = Color.TRANSPARENT
-
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(12), dp(18), dp(12), dp(12))
-            background = GradientDrawable(
-                GradientDrawable.Orientation.TL_BR,
-                intArrayOf(Color.rgb(65, 155, 255), Color.rgb(145, 85, 235), Color.rgb(245, 120, 180))
-            )
-        }
-
-        val clock = TextView(this).apply {
-            textSize = 18f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            setTypeface(null, android.graphics.Typeface.BOLD)
-            text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
-        }
-        root.addView(clock, LinearLayout.LayoutParams(-1, dp(42)))
-
-        val apps = arrayOf(
-            arrayOf("☎️", "Telefon", "tel:") ,
-            arrayOf("💬", "Üzenetek", "sms:"),
-            arrayOf("📷", "Kamera", "camera:"),
-            arrayOf("🖼️", "Fotók", "gallery:"),
-            arrayOf("🎵", "Zene", "music:"),
-            arrayOf("🗺️", "Térképek", "geo:0,0?q="),
-            arrayOf("☀️", "Időjárás", "https://www.google.com/search?q=weather"),
-            arrayOf("⏰", "Óra", "clock:"),
-            arrayOf("📝", "Jegyzetek", "notes:"),
-            arrayOf("📅", "Naptár", "calendar:"),
-            arrayOf("⚙️", "Beállítások", "settings:"),
-            arrayOf("🛍️", "App Store", "market:")
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
         )
-
-        val grid = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-        }
-        for (row in 0 until 3) {
-            val line = LinearLayout(this).apply {
-                orientation = LinearLayout.HORIZONTAL
-                gravity = Gravity.CENTER
-            }
-            for (column in 0 until 4) {
-                val app = apps[row * 4 + column]
-                val cell = LinearLayout(this).apply {
-                    orientation = LinearLayout.VERTICAL
-                    gravity = Gravity.CENTER
-                    setPadding(dp(3), dp(4), dp(3), dp(4))
-                    setOnClickListener { openApp(app[2]) }
-                }
-                val icon = TextView(this).apply {
-                    text = app[0]
-                    textSize = 34f
-                    gravity = Gravity.CENTER
-                    background = GradientDrawable().apply {
-                        cornerRadius = dp(18).toFloat()
-                        setColor(Color.argb(235, 255, 255, 255))
-                    }
-                }
-                val label = TextView(this).apply {
-                    text = app[1]
-                    textSize = 11f
-                    setTextColor(Color.WHITE)
-                    gravity = Gravity.CENTER
-                    maxLines = 1
-                }
-                cell.addView(icon, LinearLayout.LayoutParams(dp(68), dp(68)))
-                cell.addView(label, LinearLayout.LayoutParams(-1, dp(26)))
-                line.addView(cell, LinearLayout.LayoutParams(0, -1, 1f))
-            }
-            grid.addView(line, LinearLayout.LayoutParams(-1, 0, 1f))
-        }
-        root.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f))
-
-        val dock = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            setPadding(dp(8), dp(5), dp(8), dp(5))
-            background = GradientDrawable().apply {
-                cornerRadius = dp(28).toFloat()
-                setColor(Color.argb(105, 255, 255, 255))
-            }
-        }
-        val dockApps = arrayOf("☎️" to "tel:", "🧭" to "https://www.google.com/maps", "💬" to "sms:", "🎵" to "music:")
-        dockApps.forEach { (iconText, action) ->
-            dock.addView(TextView(this).apply {
-                text = iconText
-                textSize = 29f
-                gravity = Gravity.CENTER
-                setOnClickListener { openApp(action) }
-            }, LinearLayout.LayoutParams(0, dp(58), 1f))
-        }
-        root.addView(dock, LinearLayout.LayoutParams(-1, dp(70)))
-
-        setContentView(root)
+        setContentView(LauncherView())
     }
 
-    private fun openApp(action: String) {
-        try {
-            val intent = when {
-                action == "tel:" -> Intent(Intent.ACTION_DIAL, Uri.parse("tel:"))
-                action == "sms:" -> Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"))
-                action == "camera:" -> Intent("android.media.action.IMAGE_CAPTURE")
-                action == "geo:0,0?q=" -> Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))
-                action.startsWith("http") -> Intent(Intent.ACTION_VIEW, Uri.parse(action))
-                action == "settings:" -> Intent(Settings.ACTION_SETTINGS)
-                action == "market:" -> Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.android.chrome"))
-                else -> Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+    private inner class LauncherView : View(this@MainActivity) {
+        private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        private val apps = arrayOf(
+            "☎️" to "Telefon", "💬" to "Üzenetek", "📷" to "Kamera", "🖼️" to "Fotók",
+            "🎵" to "Zene", "🗺️" to "Térképek", "☀️" to "Időjárás", "⏰" to "Óra",
+            "📝" to "Jegyzetek", "📅" to "Naptár", "⚙️" to "Beállítások", "🛍️" to "App Store"
+        )
+        private var downX = 0f
+        private var downY = 0f
+
+        init { isClickable = true }
+
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            val w = width.toFloat()
+            val h = height.toFloat()
+            paint.shader = LinearGradient(0f, 0f, w, h, Color.rgb(65, 155, 255), Color.rgb(245, 120, 180), Shader.TileMode.CLAMP)
+            canvas.drawRect(0f, 0f, w, h, paint)
+            paint.shader = null
+            paint.textAlign = Paint.Align.CENTER
+            paint.color = Color.WHITE
+            paint.textSize = 18f
+            paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
+            val time = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+            canvas.drawText(time, w / 2f, 38f, paint)
+
+            val top = 58f
+            val bottom = h - 95f
+            val cellW = w / 4f
+            val cellH = (bottom - top) / 3f
+            paint.typeface = android.graphics.Typeface.DEFAULT
+            for (i in apps.indices) {
+                val row = i / 4
+                val col = i % 4
+                val cx = cellW * col + cellW / 2f
+                val cy = top + cellH * row + cellH * 0.40f
+                val size = minOf(cellW * 0.58f, cellH * 0.48f)
+                paint.color = Color.argb(235, 255, 255, 255)
+                canvas.drawRoundRect(cx - size / 2f, cy - size / 2f, cx + size / 2f, cy + size / 2f, 18f, 18f, paint)
+                paint.textSize = size * 0.48f
+                paint.color = Color.DKGRAY
+                canvas.drawText(apps[i].first, cx, cy + size * 0.17f, paint)
+                paint.textSize = 11f
+                paint.color = Color.WHITE
+                canvas.drawText(apps[i].second, cx, cy + size / 2f + 18f, paint)
             }
-            startActivity(intent)
-        } catch (_: Exception) {
-            try { startActivity(Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER) }) } catch (_: Exception) {}
+
+            val dockTop = h - 82f
+            paint.color = Color.argb(105, 255, 255, 255)
+            canvas.drawRoundRect(8f, dockTop, w - 8f, h - 10f, 28f, 28f, paint)
+            val dock = arrayOf("☎️", "🧭", "💬", "🎵")
+            for (i in dock.indices) {
+                paint.textSize = 29f
+                paint.color = Color.WHITE
+                canvas.drawText(dock[i], w * (i + 0.5f) / 4f, dockTop + 47f, paint)
+            }
+        }
+
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                downX = event.x
+                downY = event.y
+                return true
+            }
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (kotlin.math.abs(event.x - downX) < 30f && kotlin.math.abs(event.y - downY) < 30f) {
+                    val top = 58f
+                    val bottom = height - 95f
+                    val cellW = width / 4f
+                    val cellH = (bottom - top) / 3f
+                    val col = (event.x / cellW).toInt().coerceIn(0, 3)
+                    val row = ((event.y - top) / cellH).toInt()
+                    if (row in 0..2) openApp(row * 4 + col)
+                }
+                return true
+            }
+            return true
         }
     }
 
-    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+    private fun openApp(index: Int) {
+        val intent = try {
+            when (index) {
+                0 -> Intent(Intent.ACTION_DIAL)
+                1 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MESSAGING)
+                2 -> Intent("android.media.action.IMAGE_CAPTURE")
+                3 -> Intent(Intent.ACTION_VIEW).apply { type = "image/*" }
+                4 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC)
+                5 -> Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))
+                6 -> Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=weather"))
+                7 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CLOCK)
+                8 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_NOTES)
+                9 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)
+                10 -> Intent(Settings.ACTION_SETTINGS)
+                11 -> Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.android.vending"))
+                else -> null
+            }
+        } catch (_: Exception) { null }
+        if (intent != null) try { startActivity(intent) } catch (_: Exception) { }
+    }
 }
