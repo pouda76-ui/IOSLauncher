@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 
@@ -13,103 +12,81 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.rgb(28, 28, 30)
-
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            setPadding(18, 42, 18, 18)
+            setPadding(12, 36, 12, 12)
             background = GradientDrawable(
                 GradientDrawable.Orientation.TL_BR,
-                intArrayOf(
-                    Color.rgb(80, 170, 255),
-                    Color.rgb(145, 90, 235),
-                    Color.rgb(245, 120, 180)
-                )
+                intArrayOf(Color.rgb(70, 160, 255), Color.rgb(150, 90, 235), Color.rgb(245, 120, 180))
             )
         }
 
-        val time = TextView(this).apply {
-            text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-                .format(java.util.Date())
-            textSize = 17f
+        val clock = TextView(this).apply {
+            text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date())
+            textSize = 18f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
-            setTypeface(null, android.graphics.Typeface.BOLD)
         }
-        root.addView(time, LinearLayout.LayoutParams(-1, 42))
-
-        val grid = GridLayout(this).apply {
-            columnCount = 4
-            rowCount = 3
-            useDefaultMargins = false
-            alignmentMode = GridLayout.ALIGN_BOUNDS
-        }
+        root.addView(clock, LinearLayout.LayoutParams(-1, 48))
 
         val apps = arrayOf(
             "☎️\nTelefon", "💬\nÜzenetek", "📷\nKamera", "🖼️\nFotók",
             "🎵\nZene", "🗺️\nTérképek", "☀️\nIdőjárás", "⏰\nÓra",
             "📝\nJegyzetek", "📅\nNaptár", "⚙️\nBeállítások", "🛍️\nApp Store"
         )
-        apps.forEach { addApp(grid, it) }
-        root.addView(grid, LinearLayout.LayoutParams(-1, 0, 1f))
+
+        for (row in 0 until 3) {
+            val line = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER
+            }
+            for (column in 0 until 4) {
+                val item = apps[row * 4 + column].split("\n")
+                val cell = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    gravity = Gravity.CENTER
+                }
+                val icon = TextView(this).apply {
+                    text = item[0]
+                    textSize = 32f
+                    gravity = Gravity.CENTER
+                    background = GradientDrawable().apply {
+                        cornerRadius = 18f
+                        setColor(Color.WHITE)
+                    }
+                }
+                val label = TextView(this).apply {
+                    text = item[1]
+                    textSize = 10f
+                    setTextColor(Color.WHITE)
+                    gravity = Gravity.CENTER
+                }
+                cell.addView(icon, LinearLayout.LayoutParams(64, 64))
+                cell.addView(label, LinearLayout.LayoutParams(0, 30, 1f))
+                line.addView(cell, LinearLayout.LayoutParams(0, 112, 1f))
+            }
+            root.addView(line, LinearLayout.LayoutParams(-1, 112))
+        }
 
         val dock = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
-            setPadding(8, 10, 8, 10)
+            setPadding(8, 8, 8, 8)
             background = GradientDrawable().apply {
-                cornerRadius = 34f
-                setColor(Color.argb(95, 255, 255, 255))
+                cornerRadius = 28f
+                setColor(Color.argb(100, 255, 255, 255))
             }
         }
-
         arrayOf("☎️", "🧭", "💬", "🎵").forEach { icon ->
-            val t = TextView(this).apply {
+            dock.addView(TextView(this).apply {
                 text = icon
-                textSize = 30f
+                textSize = 28f
                 gravity = Gravity.CENTER
-            }
-            dock.addView(t, LinearLayout.LayoutParams(0, 64, 1f))
+            }, LinearLayout.LayoutParams(0, 60, 1f))
         }
-        root.addView(dock, LinearLayout.LayoutParams(-1, 84))
+        root.addView(dock, LinearLayout.LayoutParams(-1, 76))
 
         setContentView(root)
-    }
-
-    private fun addApp(grid: GridLayout, label: String) {
-        val parts = label.split("\n")
-        val box = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER
-            setPadding(4, 8, 4, 8)
-        }
-
-        val icon = TextView(this).apply {
-            text = parts[0]
-            textSize = 36f
-            gravity = Gravity.CENTER
-            background = GradientDrawable().apply {
-                cornerRadius = 20f
-                setColor(Color.argb(220, 255, 255, 255))
-            }
-        }
-
-        val name = TextView(this).apply {
-            text = parts[1]
-            textSize = 11f
-            setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            setPadding(0, 5, 0, 0)
-        }
-
-        box.addView(icon, LinearLayout.LayoutParams(68, 68))
-        box.addView(name, LinearLayout.LayoutParams(-1, 32))
-        grid.addView(box, GridLayout.LayoutParams().apply {
-            width = 0
-            height = GridLayout.LayoutParams.WRAP_CONTENT
-            columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
-        })
     }
 }
