@@ -101,7 +101,7 @@ class MainActivity : Activity() {
             4 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_MUSIC)
             5 -> Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))
             6 -> Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/search?q=weather"))
-            7 -> Intent(Intent.ACTION_MAIN).apply { addCategory(Intent.CATEGORY_LAUNCHER); setPackage("com.google.android.deskclock") }
+            7 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
             8 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
             9 -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_APP_CALENDAR)
             10 -> Intent(Settings.ACTION_SETTINGS)
